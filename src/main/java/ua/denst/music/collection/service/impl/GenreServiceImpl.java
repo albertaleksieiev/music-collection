@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 public class GenreServiceImpl implements GenreService {
     GenreRepository repository;
 
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         create("Electro");
         create("Acid");

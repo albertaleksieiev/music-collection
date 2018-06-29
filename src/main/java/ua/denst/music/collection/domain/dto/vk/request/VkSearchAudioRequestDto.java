@@ -1,4 +1,4 @@
-package ua.denst.music.collection.domain.dto;
+package ua.denst.music.collection.domain.dto.vk.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

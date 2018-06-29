@@ -40,7 +40,7 @@ public class PostgresDatabaseConfig {
         Map<String, Object> props = new HashMap<>();
         props.put("hibernate.physical_naming_strategy", ImprovedCamelCaseNamingStrategy.class.getName());
         props.put("database-platform", org.hibernate.dialect.PostgreSQL94Dialect.class);
-        props.put("hibernate.hbm2ddl.auto", "create");
+        props.put("hibernate.hbm2ddl.auto", "update");
         return props;
     }
 

@@ -21,13 +21,24 @@ public class SearchController {
     SearchService searchService;
 
     @PostMapping(params = {"artist", "title", "genres", "collectionId"})
-    public ResponseEntity<Track> search(@RequestParam(name = "artist") final String artist,
-                                        @RequestParam(name = "title") final String title,
-                                        @RequestParam(name = "genres") final Set<String> genres,
-                                        @RequestParam(name = "collectionId") final Long collectionId) {
-        final Optional<Track> track = searchService.search(artist, title, genres, collectionId);
+    public ResponseEntity<Track> searchAndDownload(@RequestParam(name = "artist") final String artist,
+                                                   @RequestParam(name = "title") final String title,
+                                                   @RequestParam(name = "genres") final Set<String> genres,
+                                                   @RequestParam(name = "collectionId") final Long collectionId) {
+        final Optional<Track> track = searchService.searchAndDownload(artist, title, genres, collectionId);
 
         return track.map(track1 -> new ResponseEntity<>(track1, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PostMapping(params = {"artist", "title", "genres", "collectionId", "async"})
+    public ResponseEntity searchAndDownloadAsync(@RequestParam(name = "artist") final String artist,
+                                                 @RequestParam(name = "title") final String title,
+                                                 @RequestParam(name = "genres") final Set<String> genres,
+                                                 @RequestParam(name = "collectionId") final Long collectionId,
+                                                 @RequestParam(name = "async") final Boolean async) {
+        searchService.searchAndDownloadAsync(artist, title, genres, collectionId);
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

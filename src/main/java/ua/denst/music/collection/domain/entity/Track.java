@@ -72,6 +72,9 @@ public class Track implements Serializable {
     @Column
     private String authorsStr;
 
+    @Column
+    private Short year;
+
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(name = "AUTHOR_TRACK", joinColumns = @JoinColumn(name = "TRACK_ID"), inverseJoinColumns = @JoinColumn(name = "AUTHOR_ID"))
     private Set<Author> authors = new HashSet<>();

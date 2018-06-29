@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ua.denst.music.collection.domain.TrackSource;
 import ua.denst.music.collection.domain.entity.*;
+import ua.denst.music.collection.domain.event.DownloadSuccessEvent;
 import ua.denst.music.collection.repository.GenreRepository;
 import ua.denst.music.collection.repository.MusicCollectionRepository;
 import ua.denst.music.collection.repository.TrackRepository;
@@ -65,7 +66,7 @@ public class TrackServiceImpl implements TrackService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Track save(final Track track, final Set<String> genres, final Long collectionId/*final MusicCollection collection*/) {
+    public Track save(final Track track, final Set<String> genres, final Long collectionId) {
 
         if (StringUtils.isNotEmpty(track.getAuthorsStr()) && (CollectionUtils.isEmpty(track.getAuthors()))) {
             setAuthors(track.getAuthorsStr(), track);
@@ -81,6 +82,15 @@ public class TrackServiceImpl implements TrackService {
     @Override
     public Track findByArtistAndTitle(final String artist, final String title) {
         return trackRepository.findByAuthorsStrIgnoreCaseAndTitleIgnoreCase(artist, title);
+    }
+
+    @Override
+    public void onDownloadSuccessEvent(final DownloadSuccessEvent event) {
+        final Track track = event.getTrack();
+        final Set<String> genres = event.getGenres();
+        final Long collectionId = event.getCollectionId();
+
+        save(track, genres, collectionId);
     }
 
     private void setAuthors(final String authorsStr, final Track track) {

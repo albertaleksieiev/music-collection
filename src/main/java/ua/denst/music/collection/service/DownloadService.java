@@ -3,17 +3,14 @@ package ua.denst.music.collection.service;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.domain.entity.VkAudio;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 public interface DownloadService {
 
-    List<Track> download(List<VkAudio> audios);
+    Optional<Track> download(VkAudio vkAudio, Set<String> genres, Long collectionId);
 
-    Track download(VkAudio vkAudio);
-
-//    void download(Track track);
-
-    void downloadAsync(List<VkAudio> audios);
+    void downloadAsync(VkAudio audio, Set<String> genres, Long collectionId);
 
 }

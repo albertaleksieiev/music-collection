@@ -16,7 +16,7 @@ public class MusicCollectionServiceImpl implements MusicCollectionService {
 
     private final MusicCollectionRepository repository;
 
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         create(DEFAULT_COLLECTION_NAME);
     }

@@ -23,9 +23,7 @@ import ua.denst.music.collection.property.DownloaderProperties;
 import ua.denst.music.collection.service.DownloadService;
 import ua.denst.music.collection.service.PropertyService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Slf4j
@@ -42,55 +40,46 @@ public class VkDownloadService implements DownloadService {
 
     @Async
     @Override
-    public void downloadAsync(final List<VkAudio> audios) {
-        download(audios);
+    public void downloadAsync(final VkAudio audio, Set<String> genres, Long collectionId) {
+        download(audio, genres, collectionId);
     }
 
     @Override
-    public List<Track> download(final List<VkAudio> audios) {
-        log.debug("Download queue: {}", audios.size());
-
+    public Optional<Track> download(final VkAudio vkAudio, final Set<String> genres, final Long collectionId) {
         final DownloaderProperties properties = propertyService.get(DownloaderProperties.class);
-        return download(properties, audios);
-    }
-
-    @Override
-    public Track download(final VkAudio vkAudio) {
-        final List<Track> tracks = download(Collections.singletonList(vkAudio));
-
-        return tracks.get(0);
+        return download(properties, vkAudio, genres, collectionId);
     }
 
     @SneakyThrows
-    private List<Track> download(final DownloaderProperties properties, final List<VkAudio> audios) {
-        final List<Track> tracks = new ArrayList<>();
+    private Optional<Track> download(final DownloaderProperties properties, final VkAudio audio,
+                                     final Set<String> genres, final Long collectionId) {
         log.debug("Download pool-size: {}", properties.getPoolSize());
 
         final ExecutorService executor = Executors.newFixedThreadPool(properties.getPoolSize());
         final CompletionService<byte[]> completionService = new ExecutorCompletionService<>(executor);
 
-        for (final VkAudio audio : audios) {
-            completionService.submit(new DownloadTask(audio));
-            downloadTrack(tracks, completionService, audio);
-        }
+        completionService.submit(new DownloadTask(audio));
+        final Optional<Track> track = downloadTrack(completionService, audio, genres, collectionId);
 
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
 
-        publisher.publishEvent(new DownloadFinishEvent(this, audios));
+        publisher.publishEvent(new DownloadFinishEvent(this, audio));
 
-        return tracks;
+        return track;
     }
 
-    private void downloadTrack(final List<Track> tracks, final CompletionService<byte[]> completionService, final VkAudio audio) throws InterruptedException {
+    private Optional<Track> downloadTrack(final CompletionService<byte[]> completionService, final VkAudio audio,
+                                          final Set<String> genres, final Long collectionId) throws InterruptedException {
         try {
             final byte[] content = completionService.take().get();
-            publisher.publishEvent(new DownloadSuccessEvent(this, audio));
 
             final Track track = createTrack(audio, content);
-            tracks.add(track);
+            publisher.publishEvent(new DownloadSuccessEvent(this, audio, track, genres, collectionId));
+            return Optional.of(track);
         } catch (final ExecutionException ex) {
             publisher.publishEvent(new DownloadFailEvent(this, (DownloadException) ex.getCause()));
+            return Optional.empty();
         }
     }
 

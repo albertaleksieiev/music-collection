@@ -7,11 +7,9 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ua.denst.music.collection.client.VkClient;
-import ua.denst.music.collection.domain.dto.VkSearchAudioRequestDto;
-import ua.denst.music.collection.domain.dto.VkSearchResponseDto;
-import ua.denst.music.collection.domain.entity.Genre;
+import ua.denst.music.collection.domain.dto.vk.request.VkSearchAudioRequestDto;
+import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
 import ua.denst.music.collection.domain.entity.MusicCollection;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.domain.entity.VkAudio;
@@ -51,27 +49,59 @@ public class VkSearchService implements SearchService {
         final MusicCollection defaultCollection = musicCollectionService.findByName(DEFAULT_COLLECTION_NAME);
         final Set<String> genres = Collections.singleton("Electro");
 
-        search("Claro Intelecto", "Tone", genres, defaultCollection.getCollectionId());
+        searchAndDownload("Claro Intelecto", "Tone", genres, defaultCollection.getCollectionId());
     }
 
     @Override
-    public Optional<Track> search(final String authors, final String title,
-                                  final Set<String> genres, final Long collectionId) {
+    public Optional<Track> searchAndDownload(final String authors, final String title,
+                                             final Set<String> genres, final Long collectionId) {
+
+        Track fromDb = trackService.findByArtistAndTitle(authors, title);
+        if (fromDb != null) {
+            log.debug("Found track in db, not perform searching.");
+            return Optional.of(fromDb);
+        }
+
         final Optional<VkAudio> vkAudio = search(authors, title);
 
         if (vkAudio.isPresent()) {
             final VkAudio audio = vkAudio.get();
-            final Track fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
+            fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
             if (fromDb != null) {
-                log.info("Found track in db, not perform searching.");
+                log.debug("Found track in db, not perform searching.");
                 return Optional.of(fromDb);
             }
-            final Track downloaded = saveVkAudioAndDownloadTrack(audio);
-            final Track saved = trackService.save(downloaded, genres, collectionId);
-            return Optional.of(saved);
+            final Optional<Track> downloaded = saveVkAudioAndDownloadTrack(audio, genres, collectionId);
+            if (downloaded.isPresent()) {
+                final Track saved = trackService.save(downloaded.get(), genres, collectionId);
+                return Optional.of(saved);
+            }
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public void searchAndDownloadAsync(final String authors, final String title, final Set<String> genres, final Long collectionId) {
+
+        Track fromDb = trackService.findByArtistAndTitle(authors, title);
+        if (fromDb != null) {
+            log.debug("Found track in db, not perform searching.");
+        } else {
+            final Optional<VkAudio> vkAudio = search(authors, title);
+
+            if (vkAudio.isPresent()) {
+                final VkAudio audio = vkAudio.get();
+
+                fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
+                if (fromDb != null) {
+                    log.debug("Found track in db, not perform searching.");
+                } else {
+                    audioService.save(audio);
+                    downloadService.downloadAsync(audio, genres, collectionId);
+                }
+            }
+        }
     }
 
     @SneakyThrows
@@ -141,8 +171,8 @@ public class VkSearchService implements SearchService {
         }
     }
 
-    private Track saveVkAudioAndDownloadTrack(final VkAudio audio) {
+    private Optional<Track> saveVkAudioAndDownloadTrack(final VkAudio audio, final Set<String> genres, final Long collectionId) {
         audioService.save(audio);
-        return downloadService.download(audio);
+        return downloadService.download(audio, genres, collectionId);
     }
 }
