@@ -8,11 +8,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ua.denst.music.collection.domain.entity.MusicCollection;
 import ua.denst.music.collection.domain.entity.Track;
-import ua.denst.music.collection.exception.ImportException;
+import ua.denst.music.collection.exception.ExportException;
 import ua.denst.music.collection.repository.TrackRepository;
 import ua.denst.music.collection.service.FileSystemExportService;
 import ua.denst.music.collection.service.MusicCollectionService;
-import ua.denst.music.collection.service.TrackImportService;
+import ua.denst.music.collection.service.TrackExportService;
 
 import java.io.File;
 
@@ -21,7 +21,7 @@ import java.io.File;
 public class DenstFileSystemExportServiceImpl implements FileSystemExportService {
 
     private final TrackRepository trackRepository;
-    private final TrackImportService trackImportService;
+    private final TrackExportService trackExportService;
     private final MusicCollectionService collectionService;
 
     @Value("${music.collection.import.root.folder}")
@@ -29,10 +29,10 @@ public class DenstFileSystemExportServiceImpl implements FileSystemExportService
 
     @Autowired
     public DenstFileSystemExportServiceImpl(final TrackRepository trackRepository,
-                                            final TrackImportService trackImportService,
+                                            final TrackExportService trackExportService,
                                             final MusicCollectionService collectionService) {
         this.trackRepository = trackRepository;
-        this.trackImportService = trackImportService;
+        this.trackExportService = trackExportService;
         this.collectionService = collectionService;
     }
 
@@ -41,7 +41,7 @@ public class DenstFileSystemExportServiceImpl implements FileSystemExportService
         final MusicCollection collection = collectionService.findByName(collectionName);
 
         if (collection == null) {
-            throw new ImportException("Collection with name \"" + collectionName + "\" not exists.");
+            throw new ExportException("Collection with name \"" + collectionName + "\" not exists.");
         }
 
         final File root = new File(rootFolder);
@@ -53,28 +53,28 @@ public class DenstFileSystemExportServiceImpl implements FileSystemExportService
         final File collectionFolder = new File(root, collectionName);
         collectionFolder.mkdir();
 
-        Integer countImported = 0;
+        Integer countExported = 0;
 
         final Page<Track> firstPage = trackRepository.findByCollections_CollectionId(collection.getCollectionId(), new PageRequest(0, 20));
-        countImported += importPage(firstPage, collectionFolder, createCopyInEveryGenre);
+        countExported += exportPage(firstPage, collectionFolder, createCopyInEveryGenre);
         for (int i = 1; i < firstPage.getTotalPages(); i++) {
             final Page<Track> page = trackRepository.findByCollections_CollectionId(collection.getCollectionId(), new PageRequest(i, 20));
-            countImported += importPage(page, collectionFolder, createCopyInEveryGenre);
+            countExported += exportPage(page, collectionFolder, createCopyInEveryGenre);
         }
 
-        return countImported;
+        return countExported;
     }
 
-    private Integer importPage(final Page<Track> page, final File collectionFolder, final boolean createCopyInEveryGenre) {
-        Integer imported = 0;
+    private Integer exportPage(final Page<Track> page, final File collectionFolder, final boolean createCopyInEveryGenre) {
+        Integer exported = 0;
 
         for (final Track track : page) {
-            log.info("Importing track {}", track.getFileName());
-            trackImportService.importTrack(track, collectionFolder, createCopyInEveryGenre);
-            imported++;
+            log.info("Exporting track {}", track.getFileName());
+            trackExportService.exportTrack(track, collectionFolder, createCopyInEveryGenre);
+            exported++;
         }
 
-        return imported;
+        return exported;
     }
 
 

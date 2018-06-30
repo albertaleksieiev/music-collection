@@ -6,17 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ua.denst.music.collection.domain.entity.Genre;
 import ua.denst.music.collection.domain.entity.Track;
-import ua.denst.music.collection.service.TrackImportService;
+import ua.denst.music.collection.service.TrackExportService;
 
 import java.io.File;
 import java.util.Set;
 
 @Service
-public class TrackImportServiceImpl implements TrackImportService {
+public class TrackExportServiceImpl implements TrackExportService {
 
     @Override
     @SneakyThrows
-    public void importTrack(final Track track, final File collectionFolder, final boolean createCopyInEveryGenreFolder) {
+    public void exportTrack(final Track track, final File collectionFolder, final boolean createCopyInEveryGenreFolder) {
         final Set<Genre> genres = track.getGenres();
 
         if (!CollectionUtils.isEmpty(genres)) {
