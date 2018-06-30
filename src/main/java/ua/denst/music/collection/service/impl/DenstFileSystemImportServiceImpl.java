@@ -1,80 +1,141 @@
 package ua.denst.music.collection.service.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import ua.denst.music.collection.domain.FileNameData;
+import ua.denst.music.collection.domain.TrackSource;
+import ua.denst.music.collection.domain.entity.Author;
 import ua.denst.music.collection.domain.entity.MusicCollection;
 import ua.denst.music.collection.domain.entity.Track;
-import ua.denst.music.collection.exception.ImportException;
-import ua.denst.music.collection.repository.TrackRepository;
+import ua.denst.music.collection.repository.MusicCollectionRepository;
+import ua.denst.music.collection.service.AuthorService;
 import ua.denst.music.collection.service.FileSystemImportService;
-import ua.denst.music.collection.service.MusicCollectionService;
-import ua.denst.music.collection.service.TrackImportService;
+import ua.denst.music.collection.service.TrackService;
+import ua.denst.music.collection.util.FileNameParser;
 
+import javax.persistence.EntityManager;
 import java.io.File;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
-@Slf4j
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@AllArgsConstructor
+/*
+  Accepted files hierarchy : root/genre/track1.mp3 or root/genre/genre/track1.mp3
+ */
 public class DenstFileSystemImportServiceImpl implements FileSystemImportService {
+    EntityManager entityManager;
 
-    private final TrackRepository trackRepository;
-    private final TrackImportService trackImportService;
-    private final MusicCollectionService collectionService;
+    MusicCollectionRepository musicCollectionRepository;
+    AuthorService authorService;
 
-    @Value("${music.collection.import.root.folder}")
-    private String rootFolder;
-
-    @Autowired
-    public DenstFileSystemImportServiceImpl(final TrackRepository trackRepository,
-                                            final TrackImportService trackImportService,
-                                            final MusicCollectionService collectionService) {
-        this.trackRepository = trackRepository;
-        this.trackImportService = trackImportService;
-        this.collectionService = collectionService;
-    }
+    TrackService trackService;
+    FileNameParser fileNameParser;
 
     @Override
-    public Integer importCollection(final String collectionName, final boolean createCopyInEveryGenre) {
-        final MusicCollection collection = collectionService.findByName(collectionName);
+    public Integer importCollectionFromFileSystem(final String collectionName, final String root, final Short bitRate) {
+        MusicCollection collection = musicCollectionRepository.findByCollectionNameIgnoreCase(collectionName);
 
         if (collection == null) {
-            throw new ImportException("Collection with name \"" + collectionName + "\" not exists.");
+            collection = new MusicCollection(collectionName);
+            musicCollectionRepository.save(collection);
         }
 
-        final File root = new File(rootFolder);
+        final File rootFile = new File(root);
 
-        if (!root.exists() && !root.mkdirs()) {
-            throw new IllegalStateException("Can not create destination folder.");
+        if (rootFile.isDirectory()) {
+            return syncRoot(rootFile, bitRate, collection);
         }
 
-        final File collectionFolder = new File(root, collectionName);
-        collectionFolder.mkdir();
-
-        Integer countImported = 0;
-
-        final Page<Track> firstPage = trackRepository.findByCollections_CollectionId(collection.getCollectionId(), new PageRequest(0, 20));
-        countImported += importPage(firstPage, collectionFolder, createCopyInEveryGenre);
-        for (int i = 1; i < firstPage.getTotalPages(); i++) {
-            final Page<Track> page = trackRepository.findByCollections_CollectionId(collection.getCollectionId(), new PageRequest(i, 20));
-            countImported += importPage(page, collectionFolder, createCopyInEveryGenre);
-        }
-
-        return countImported;
+        return 0;
     }
 
-    private Integer importPage(final Page<Track> page, final File collectionFolder, final boolean createCopyInEveryGenre) {
-        Integer imported = 0;
+    private Integer syncRoot(final File root, final Short bitRate, final MusicCollection collection) {
+        Integer synced = 0;
 
-        for (final Track track : page) {
-            log.info("Importing track {}", track.getFileName());
-            trackImportService.importTrack(track, collectionFolder, createCopyInEveryGenre);
-            imported++;
+        final File[] genres = root.listFiles();
+
+        if (genres != null) {
+            for (final File genreFolder : genres) {
+                if (genreFolder.isDirectory()) {
+                    synced += syncGenre(bitRate, genreFolder, collection);
+                }
+            }
         }
 
-        return imported;
+        return synced;
+    }
+
+    private Integer syncGenre(final Short bitRate, final File genreFolder, final MusicCollection collection) {
+        Integer synced = 0;
+
+        final File[] tracks = genreFolder.listFiles();
+        if (tracks != null) {
+            for (final File file : tracks) {
+                final String genre = getGenreName(genreFolder);
+                if (file.isDirectory()) {
+                    synced += processGenreSubFolder(bitRate, genre, file, collection);
+                } else {
+                    if (syncTrack(bitRate, genre, file, collection)) {
+                        synced++;
+                    }
+                }
+            }
+        }
+
+        return synced;
+    }
+
+    private String getGenreName(final File genreFolder) {
+        final String folderName = genreFolder.getName();
+        return Character.toUpperCase(folderName.charAt(0)) + folderName.substring(1).toLowerCase();
+    }
+
+    private Integer processGenreSubFolder(final Short bitRate, final String genre, final File file, final MusicCollection collection) {
+        Integer synced = 0;
+
+        final File[] tracks = file.listFiles();
+        if (tracks != null) {
+            for (final File track : tracks) {
+                if (syncTrack(bitRate, genre, track, collection)) {
+                    synced++;
+                }
+            }
+        }
+
+        return synced;
+    }
+
+    private boolean syncTrack(final Short bitRate, final String genre, final File file, final MusicCollection collection) {
+        final Optional<Track> savedTrack = saveTrack(bitRate, file, genre, collection);
+
+        //to prevent out of memory error
+        savedTrack.ifPresent(entityManager::detach);
+
+        return savedTrack.isPresent();
+    }
+
+    private Optional<Track> saveTrack(final Short bitRate, final File track, final String genre, final MusicCollection collection) {
+        try {
+            final String fileName = track.getName();
+            final FileNameData fileNameData = fileNameParser.parseFileName(fileName);
+            final String title = fileNameData.getTitle();
+            final Set<Author> authors = authorService.getOrCreateAuthors(fileNameData.getAuthors());
+            final String extension = fileNameData.getExtension();
+            final byte[] content = Files.readAllBytes(track.toPath());
+            final Set<String> genres = new HashSet<String>() {{
+                add(genre);
+            }};
+
+            return Optional.of(trackService.create(title, fileName, authors, extension, content, track.length() / 1024 / 1024., bitRate, TrackSource.FILESYSTEM, genres, collection));
+        } catch (final Exception e) {
+            return Optional.empty();
+        }
     }
 
 

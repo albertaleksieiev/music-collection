@@ -1,5 +1,6 @@
 package ua.denst.music.collection.service.search.impl;
 
+import com.google.common.collect.Iterables;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -58,5 +59,15 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
         final Track saved = trackService.save(track, genres, collectionId);
 
         saveSuccess(event.getSearchHistory(), saved, false);
+    }
+
+    @Override
+    public Integer clearSuccessEvents() {
+        final Iterable<SearchHistory> successEvents = repository.findBySearchStatus(SearchStatus.SUCCESS);
+        final int size = Iterables.size(successEvents);
+
+        repository.delete(successEvents);
+
+        return size;
     }
 }

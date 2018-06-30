@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.denst.music.collection.domain.dto.request.SearchRequestDto;
 import ua.denst.music.collection.domain.entity.Track;
+import ua.denst.music.collection.service.search.SearchHistoryService;
 import ua.denst.music.collection.service.search.SearchServiceFacade;
 
 import java.util.Optional;
@@ -17,7 +18,9 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping(value = "/api/search")
 public class SearchController {
+
     SearchServiceFacade searchServiceFacade;
+    SearchHistoryService searchHistoryService;
 
     @PostMapping
     public ResponseEntity<Track> searchAndDownload(@RequestBody final SearchRequestDto searchRequest,
@@ -32,5 +35,10 @@ public class SearchController {
 
         return track.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping(value = "/history")
+    public ResponseEntity<Integer> clearHistory() {
+        return ResponseEntity.ok(searchHistoryService.clearSuccessEvents());
     }
 }

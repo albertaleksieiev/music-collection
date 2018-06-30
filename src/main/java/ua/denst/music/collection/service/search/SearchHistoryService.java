@@ -18,4 +18,6 @@ public interface SearchHistoryService {
 
     @EventListener
     void onDownloadSuccessEvent(VkDownloadSuccessEvent event);
+
+    Integer clearSuccessEvents();
 }

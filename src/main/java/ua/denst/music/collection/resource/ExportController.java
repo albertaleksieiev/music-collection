@@ -14,14 +14,13 @@ import ua.denst.music.collection.service.FileSystemExportService;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequestMapping(value = "/api/export")
 public class ExportController {
+
     FileSystemExportService fileSystemExportService;
 
-    @PostMapping(params = {"collectionName", "rootFolder", "bitRate"})
+    @PostMapping(params = {"collectionName", "createCopyInEveryGenreFolder"})
     public ResponseEntity<Integer> create(@RequestParam(name = "collectionName") final String collectionName,
-                                          @RequestParam(name = "rootFolder") final String rootFolder,
-                                          @RequestParam(name = "bitRate") final Short bitRate) {
-        final Integer countSynced = fileSystemExportService.syncCollectionFromFileSystem(collectionName, rootFolder, bitRate);
-
-        return new ResponseEntity<>(countSynced, HttpStatus.OK);
+                                          @RequestParam(name = "createCopyInEveryGenreFolder", defaultValue = "false") final boolean createCopyInEveryGenreFolder) {
+        final Integer countImported = fileSystemExportService.exportCollection(collectionName, createCopyInEveryGenreFolder);
+        return new ResponseEntity<>(countImported, HttpStatus.OK);
     }
 }
