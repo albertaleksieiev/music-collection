@@ -1,4 +1,4 @@
-package ua.denst.music.collection.domain.event;
+package ua.denst.music.collection.domain.event.vk;
 
 import org.springframework.context.ApplicationEvent;
 

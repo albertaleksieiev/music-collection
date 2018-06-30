@@ -11,11 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ua.denst.music.collection.domain.TrackSource;
 import ua.denst.music.collection.domain.entity.*;
-import ua.denst.music.collection.domain.event.DownloadSuccessEvent;
+import ua.denst.music.collection.domain.event.vk.VkDownloadSuccessEvent;
 import ua.denst.music.collection.repository.GenreRepository;
 import ua.denst.music.collection.repository.MusicCollectionRepository;
 import ua.denst.music.collection.repository.TrackRepository;
 import ua.denst.music.collection.service.AuthorService;
+import ua.denst.music.collection.service.search.SearchHistoryService;
 import ua.denst.music.collection.service.TrackService;
 import ua.denst.music.collection.util.FileNameParser;
 
@@ -34,6 +35,7 @@ public class TrackServiceImpl implements TrackService {
 
     AuthorService authorService;
     FileNameParser fileNameParser;
+    SearchHistoryService searchHistoryService;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -85,12 +87,14 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public void onDownloadSuccessEvent(final DownloadSuccessEvent event) {
+    public void onDownloadSuccessEvent(final VkDownloadSuccessEvent event) {
         final Track track = event.getTrack();
         final Set<String> genres = event.getGenres();
         final Long collectionId = event.getCollectionId();
 
-        save(track, genres, collectionId);
+        final Track saved = save(track, genres, collectionId);
+
+        searchHistoryService.saveSuccess(event.getSearchHistory(), saved, false);
     }
 
     private void setAuthors(final String authorsStr, final Track track) {

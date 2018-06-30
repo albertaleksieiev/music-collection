@@ -18,7 +18,7 @@ import ua.denst.music.collection.domain.dto.discogs.response.DiscogsTrackDto;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.exception.InvalidDiscogsLinkException;
 import ua.denst.music.collection.service.DiscogsService;
-import ua.denst.music.collection.service.SearchService;
+import ua.denst.music.collection.service.search.SearchServiceFacade;
 import ua.denst.music.collection.util.JsonUtils;
 
 import java.text.MessageFormat;
@@ -38,7 +38,7 @@ public class DiscogsServiceImpl implements DiscogsService {
     private static final String DEFAULT_ARTISTS_DELIMITER = " & ";
 
     DiscogsClient discogsClient;
-    SearchService searchService;
+    SearchServiceFacade searchService;
 
     @Override
     public DiscogsSearchAndDownloadResponseDto searchAndDownload(final String link, final Long collectionId) {

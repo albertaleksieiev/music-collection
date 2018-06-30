@@ -12,7 +12,7 @@ import javax.annotation.PostConstruct;
 @Service
 @AllArgsConstructor
 public class MusicCollectionServiceImpl implements MusicCollectionService {
-    static final String DEFAULT_COLLECTION_NAME = "Default Collection";
+    public static final String DEFAULT_COLLECTION_NAME = "Default Collection";
 
     private final MusicCollectionRepository repository;
 

@@ -1,4 +1,4 @@
-package ua.denst.music.collection.service.impl;
+package ua.denst.music.collection.service.search.impl;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -7,28 +7,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.denst.music.collection.domain.entity.VkAudio;
-import ua.denst.music.collection.domain.event.DownloadStatusEvent;
-import ua.denst.music.collection.repository.AudioRepository;
-import ua.denst.music.collection.service.AudioService;
+import ua.denst.music.collection.domain.event.vk.VkDownloadStatusEvent;
+import ua.denst.music.collection.repository.VkAudioRepository;
+import ua.denst.music.collection.service.search.VkAudioService;
 
 @Transactional
 @Service
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class VkAudioService implements AudioService {
+public class VkAudioServiceImpl implements VkAudioService {
 
-    AudioRepository audioRepository;
+    VkAudioRepository vkAudioRepository;
 
     @Override
     public void save(final VkAudio audio) {
-        audioRepository.save(audio);
+        vkAudioRepository.save(audio);
     }
 
     @Override
-    public void onDownloadStatusEvent(final DownloadStatusEvent event) {
+    public void onDownloadStatusEvent(final VkDownloadStatusEvent event) {
         final VkAudio audio = event.getAudio();
-        final VkAudio entity = audioRepository.findOne(audio.getId());
+        final VkAudio entity = vkAudioRepository.findOne(audio.getId());
         entity.setStatus(event.getStatus());
         save(entity);
     }

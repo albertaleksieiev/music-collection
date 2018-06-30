@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import ua.denst.music.collection.domain.entity.VkAudio;
 
 @Repository
-public interface AudioRepository extends CrudRepository<VkAudio, Long> {
+public interface VkAudioRepository extends CrudRepository<VkAudio, Long> {
 }

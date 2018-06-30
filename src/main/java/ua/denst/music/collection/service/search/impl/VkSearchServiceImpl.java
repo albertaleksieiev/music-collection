@@ -1,4 +1,4 @@
-package ua.denst.music.collection.service.impl;
+package ua.denst.music.collection.service.search.impl;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,27 +10,29 @@ import org.springframework.stereotype.Service;
 import ua.denst.music.collection.client.VkClient;
 import ua.denst.music.collection.domain.dto.vk.request.VkSearchAudioRequestDto;
 import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
-import ua.denst.music.collection.domain.entity.MusicCollection;
+import ua.denst.music.collection.domain.entity.SearchHistory;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.domain.entity.VkAudio;
 import ua.denst.music.collection.service.*;
+import ua.denst.music.collection.service.search.VkAudioService;
+import ua.denst.music.collection.service.search.VkDownloadService;
+import ua.denst.music.collection.service.search.SearchHistoryService;
+import ua.denst.music.collection.service.search.VkSearchService;
 import ua.denst.music.collection.service.search.vk.VkAudioLoader;
 import ua.denst.music.collection.service.search.vk.VkSearchResultAnalyzer;
 import ua.denst.music.collection.service.search.vk.VkSearchResultProcessor;
 import ua.denst.music.collection.util.BitRateCalculator;
 import ua.denst.music.collection.util.JsonUtils;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 
-import static ua.denst.music.collection.service.impl.MusicCollectionServiceImpl.DEFAULT_COLLECTION_NAME;
 import static ua.denst.music.collection.util.Constants.USER_ID;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 @AllArgsConstructor
-public class VkSearchService implements SearchService {
+public class VkSearchServiceImpl implements VkSearchService {
     static String AUTHOR_TITLE_DELIMITER = " - ";
     static String CONTENT_RANGE_HEADER = "content-range";
 
@@ -39,68 +41,53 @@ public class VkSearchService implements SearchService {
     VkSearchResultProcessor vkSearchResultProcessor;
     VkAudioLoader vkAudioLoader;
 
-    MusicCollectionService musicCollectionService;
     TrackService trackService;
-    DownloadService downloadService;
-    AudioService audioService;
-
-    @PostConstruct
-    public void checkSearch() {
-        final MusicCollection defaultCollection = musicCollectionService.findByName(DEFAULT_COLLECTION_NAME);
-        final Set<String> genres = Collections.singleton("Electro");
-
-        searchAndDownload("Claro Intelecto", "Tone", genres, defaultCollection.getCollectionId());
-    }
+    SearchHistoryService searchHistoryService;
+    VkDownloadService vkDownloadService;
+    VkAudioService vkAudioService;
 
     @Override
-    public Optional<Track> searchAndDownload(final String authors, final String title,
-                                             final Set<String> genres, final Long collectionId) {
-
-        Track fromDb = trackService.findByArtistAndTitle(authors, title);
-        if (fromDb != null) {
-            log.debug("Found track in db, not perform searching.");
-            return Optional.of(fromDb);
-        }
+    public Optional<Track> searchAndDownload(final String authors, final String title, final Set<String> genres,
+                                             final Long collectionId, final SearchHistory searchHistory) {
 
         final Optional<VkAudio> vkAudio = search(authors, title);
 
         if (vkAudio.isPresent()) {
             final VkAudio audio = vkAudio.get();
-            fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
+            final Track fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
             if (fromDb != null) {
                 log.debug("Found track in db, not perform searching.");
+                searchHistoryService.saveSuccess(searchHistory, fromDb, true);
                 return Optional.of(fromDb);
             }
-            final Optional<Track> downloaded = saveVkAudioAndDownloadTrack(audio, genres, collectionId);
+            final Optional<Track> downloaded = saveVkAudioAndDownloadTrack(audio, genres, collectionId, searchHistory);
             if (downloaded.isPresent()) {
                 final Track saved = trackService.save(downloaded.get(), genres, collectionId);
                 return Optional.of(saved);
             }
         }
-
         return Optional.empty();
     }
 
     @Override
-    public void searchAndDownloadAsync(final String authors, final String title, final Set<String> genres, final Long collectionId) {
+    public void searchAndDownloadAsync(final String authors, final String title, final Set<String> genres,
+                                       final Long collectionId, final SearchHistory searchHistory) {
 
-        Track fromDb = trackService.findByArtistAndTitle(authors, title);
-        if (fromDb != null) {
-            log.debug("Found track in db, not perform searching.");
-        } else {
-            final Optional<VkAudio> vkAudio = search(authors, title);
+        final Optional<VkAudio> vkAudio = search(authors, title);
 
-            if (vkAudio.isPresent()) {
-                final VkAudio audio = vkAudio.get();
+        if (vkAudio.isPresent()) {
+            final VkAudio audio = vkAudio.get();
 
-                fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
-                if (fromDb != null) {
-                    log.debug("Found track in db, not perform searching.");
-                } else {
-                    audioService.save(audio);
-                    downloadService.downloadAsync(audio, genres, collectionId);
-                }
+            final Track fromDb = trackService.findByArtistAndTitle(audio.getArtist(), audio.getTitle());
+            if (fromDb != null) {
+                log.debug("Found track in db, not perform searching.");
+                searchHistoryService.saveSuccess(searchHistory, fromDb, true);
+            } else {
+                vkAudioService.save(audio);
+                vkDownloadService.downloadAsync(audio, genres, collectionId, searchHistory);
             }
+        } else {
+            searchHistoryService.saveFail(searchHistory);
         }
     }
 
@@ -171,8 +158,9 @@ public class VkSearchService implements SearchService {
         }
     }
 
-    private Optional<Track> saveVkAudioAndDownloadTrack(final VkAudio audio, final Set<String> genres, final Long collectionId) {
-        audioService.save(audio);
-        return downloadService.download(audio, genres, collectionId);
+    private Optional<Track> saveVkAudioAndDownloadTrack(final VkAudio audio, final Set<String> genres,
+                                                        final Long collectionId, final SearchHistory searchHistory) {
+        vkAudioService.save(audio);
+        return vkDownloadService.download(audio, genres, collectionId, searchHistory);
     }
 }
