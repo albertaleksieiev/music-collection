@@ -1,6 +1,7 @@
 package ua.denst.music.collection.domain.dto.discogs.response;
 
 import org.junit.Test;
+import ua.denst.music.collection.domain.dto.response.discogs.DiscogsReleaseResponseDto;
 import ua.denst.music.collection.util.JsonUtils;
 import ua.denst.music.collection.util.ResourceLoader;
 

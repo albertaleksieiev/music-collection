@@ -18,7 +18,7 @@ public class GenreController {
     GenreService genreService;
 
     @PostMapping(params = "name")
-    public ResponseEntity<Genre> create(@RequestParam(name = "name") String name) {
+    public ResponseEntity<Genre> create(@RequestParam(name = "name") final String name) {
         final Genre genre = genreService.create(name);
 
         return new ResponseEntity<>(genre, HttpStatus.OK);

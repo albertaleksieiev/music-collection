@@ -1,4 +1,4 @@
-package ua.denst.music.collection.domain.dto;
+package ua.denst.music.collection.domain.dto.response;
 
 import lombok.Data;
 

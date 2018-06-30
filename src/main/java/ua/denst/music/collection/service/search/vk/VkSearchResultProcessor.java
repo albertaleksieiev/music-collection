@@ -1,8 +1,8 @@
 package ua.denst.music.collection.service.search.vk;
 
 import org.springframework.stereotype.Component;
-import ua.denst.music.collection.domain.dto.vk.request.VkSearchAudioRequestDto;
-import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
+import ua.denst.music.collection.domain.dto.request.vk.VkSearchAudioRequestDto;
+import ua.denst.music.collection.domain.dto.response.vk.VkSearchResponseDto;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

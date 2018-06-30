@@ -9,7 +9,7 @@ import org.jsoup.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.denst.music.collection.client.VkClient;
-import ua.denst.music.collection.domain.dto.vk.request.VkSearchAudioRequestDto;
+import ua.denst.music.collection.domain.dto.request.vk.VkSearchAudioRequestDto;
 import ua.denst.music.collection.domain.entity.VkAudio;
 import ua.denst.music.collection.util.JsonUtils;
 

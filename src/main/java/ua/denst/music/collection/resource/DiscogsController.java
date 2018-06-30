@@ -6,8 +6,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ua.denst.music.collection.domain.dto.DiscogsSearchAndDownloadResponseDto;
-import ua.denst.music.collection.domain.dto.DiscogsTrackListResponseDto;
+import ua.denst.music.collection.domain.dto.response.SearchAndDownloadResponseDto;
+import ua.denst.music.collection.domain.dto.response.DiscogsTrackListResponseDto;
 import ua.denst.music.collection.service.DiscogsService;
 
 import java.util.List;
@@ -21,9 +21,9 @@ public class DiscogsController {
     DiscogsService discogsService;
 
     @PostMapping(params = {"link", "collectionId"})
-    public ResponseEntity<DiscogsSearchAndDownloadResponseDto> downloadByDiscogsLink(@RequestParam(name = "link") final String link,
-                                                                                     @RequestParam(name = "collectionId") final Long collectionId) {
-        final DiscogsSearchAndDownloadResponseDto result = discogsService.searchAndDownload(link, collectionId);
+    public ResponseEntity<SearchAndDownloadResponseDto> downloadByDiscogsLink(@RequestParam(name = "link") final String link,
+                                                                              @RequestParam(name = "collectionId") final Long collectionId) {
+        final SearchAndDownloadResponseDto result = discogsService.searchAndDownload(link, collectionId);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

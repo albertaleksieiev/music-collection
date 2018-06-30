@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.springframework.stereotype.Service;
 import ua.denst.music.collection.client.VkClient;
-import ua.denst.music.collection.domain.dto.vk.request.VkSearchAudioRequestDto;
-import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
+import ua.denst.music.collection.domain.dto.request.vk.VkSearchAudioRequestDto;
+import ua.denst.music.collection.domain.dto.response.vk.VkSearchResponseDto;
 import ua.denst.music.collection.domain.entity.SearchHistory;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.domain.entity.VkAudio;
@@ -69,6 +69,7 @@ public class VkSearchServiceImpl implements VkSearchService {
                 return Optional.of(saved);
             }
         }
+        searchHistoryService.saveFail(searchHistory);
         return Optional.empty();
     }
 

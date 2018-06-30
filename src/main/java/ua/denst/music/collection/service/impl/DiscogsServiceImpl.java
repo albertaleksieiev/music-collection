@@ -9,12 +9,13 @@ import org.jsoup.helper.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ua.denst.music.collection.client.DiscogsClient;
-import ua.denst.music.collection.domain.dto.DiscogsSearchAndDownloadResponseDto;
-import ua.denst.music.collection.domain.dto.DiscogsTrackListResponseDto;
-import ua.denst.music.collection.domain.dto.discogs.response.DiscogsArtistDto;
-import ua.denst.music.collection.domain.dto.discogs.response.DiscogsMarketPlaceListingResponseDto;
-import ua.denst.music.collection.domain.dto.discogs.response.DiscogsReleaseResponseDto;
-import ua.denst.music.collection.domain.dto.discogs.response.DiscogsTrackDto;
+import ua.denst.music.collection.domain.dto.request.SearchRequestDto;
+import ua.denst.music.collection.domain.dto.response.SearchAndDownloadResponseDto;
+import ua.denst.music.collection.domain.dto.response.DiscogsTrackListResponseDto;
+import ua.denst.music.collection.domain.dto.response.discogs.DiscogsArtistDto;
+import ua.denst.music.collection.domain.dto.response.discogs.DiscogsMarketPlaceListingResponseDto;
+import ua.denst.music.collection.domain.dto.response.discogs.DiscogsReleaseResponseDto;
+import ua.denst.music.collection.domain.dto.response.discogs.DiscogsTrackDto;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.exception.InvalidDiscogsLinkException;
 import ua.denst.music.collection.service.DiscogsService;
@@ -41,7 +42,7 @@ public class DiscogsServiceImpl implements DiscogsService {
     SearchServiceFacade searchService;
 
     @Override
-    public DiscogsSearchAndDownloadResponseDto searchAndDownload(final String link, final Long collectionId) {
+    public SearchAndDownloadResponseDto searchAndDownload(final String link, final Long collectionId) {
         final Long releaseId = getReleaseId(link);
 
         final DiscogsReleaseResponseDto release = getReleaseDto(releaseId);
@@ -90,7 +91,7 @@ public class DiscogsServiceImpl implements DiscogsService {
         return releaseId;
     }
 
-    private DiscogsSearchAndDownloadResponseDto processDiscogsRelease(final DiscogsReleaseResponseDto release, final Long collectionId) {
+    private SearchAndDownloadResponseDto processDiscogsRelease(final DiscogsReleaseResponseDto release, final Long collectionId) {
         final Set<String> genres = new HashSet<>(release.getStyles());
         //TODO perform search if need for each artist and all combinations of artists
         final String artists = concatArtists(release.getArtists());
@@ -115,15 +116,17 @@ public class DiscogsServiceImpl implements DiscogsService {
         }
     }
 
-    private Map<String, Optional<Track>> processTrackList(final List<DiscogsTrackDto> trackList, final String artists, final Set<String> genres,
-                                                          final Long collectionId) {
+    private Map<String, Optional<Track>> processTrackList(final List<DiscogsTrackDto> trackList, final String artists,
+                                                          final Set<String> genres, final Long collectionId) {
         final Map<String, Optional<Track>> result = new HashMap<>();
 
         if (!CollectionUtils.isEmpty(trackList)) {
             trackList.forEach(discogsTrackDto -> {
                 final String title = discogsTrackDto.getTitle();
 
-                final Optional<Track> track = searchService.searchAndDownload(artists, title, genres, collectionId);
+                final SearchRequestDto searchRequestDto = createSearchRequestDto(artists, title, genres, collectionId);
+
+                final Optional<Track> track = searchService.searchAndDownload(searchRequestDto);
                 result.put(title, track);
             });
         }
@@ -131,8 +134,18 @@ public class DiscogsServiceImpl implements DiscogsService {
         return result;
     }
 
-    private DiscogsSearchAndDownloadResponseDto toDto(final Map<String, Optional<Track>> nameToTrackMap, final String artists) {
-        final DiscogsSearchAndDownloadResponseDto dto = new DiscogsSearchAndDownloadResponseDto();
+    private SearchRequestDto createSearchRequestDto(final String artists, final String title,
+                                                    final Set<String> genres, final Long collectionId) {
+        final SearchRequestDto searchRequestDto = new SearchRequestDto();
+        searchRequestDto.setArtists(artists);
+        searchRequestDto.setCollectionId(collectionId);
+        searchRequestDto.setGenres(genres);
+        searchRequestDto.setTitle(title);
+        return searchRequestDto;
+    }
+
+    private SearchAndDownloadResponseDto toDto(final Map<String, Optional<Track>> nameToTrackMap, final String artists) {
+        final SearchAndDownloadResponseDto dto = new SearchAndDownloadResponseDto();
         final List<Track> tracks = new ArrayList<>();
         final List<String> notFound = new ArrayList<>();
 

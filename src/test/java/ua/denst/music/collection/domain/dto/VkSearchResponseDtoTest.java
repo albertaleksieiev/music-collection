@@ -1,7 +1,7 @@
 package ua.denst.music.collection.domain.dto;
 
 import org.junit.Test;
-import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
+import ua.denst.music.collection.domain.dto.response.vk.VkSearchResponseDto;
 import ua.denst.music.collection.util.JsonUtils;
 import ua.denst.music.collection.util.ResourceLoader;
 
