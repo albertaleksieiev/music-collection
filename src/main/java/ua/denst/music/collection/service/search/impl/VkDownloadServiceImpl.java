@@ -24,7 +24,8 @@ import ua.denst.music.collection.property.DownloaderProperties;
 import ua.denst.music.collection.service.PropertyService;
 import ua.denst.music.collection.service.search.VkDownloadService;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.*;
 
 @Slf4j

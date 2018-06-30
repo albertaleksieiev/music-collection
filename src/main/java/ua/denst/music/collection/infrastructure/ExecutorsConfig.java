@@ -47,7 +47,7 @@ public class ExecutorsConfig implements SchedulingConfigurer, AsyncConfigurer {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
-         return Executors.newSingleThreadScheduledExecutor();
+        return Executors.newSingleThreadScheduledExecutor();
     }
 
 }

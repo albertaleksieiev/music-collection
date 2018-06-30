@@ -18,8 +18,8 @@ public class ExportController {
 
     @PostMapping(params = {"collectionName", "rootFolder", "bitRate"})
     public ResponseEntity<Integer> create(@RequestParam(name = "collectionName") final String collectionName,
-                                        @RequestParam(name = "rootFolder") final String rootFolder,
-                                        @RequestParam(name = "bitRate") final Short bitRate) {
+                                          @RequestParam(name = "rootFolder") final String rootFolder,
+                                          @RequestParam(name = "bitRate") final Short bitRate) {
         final Integer countSynced = fileSystemExportService.syncCollectionFromFileSystem(collectionName, rootFolder, bitRate);
 
         return new ResponseEntity<>(countSynced, HttpStatus.OK);

@@ -13,10 +13,10 @@ import ua.denst.music.collection.domain.dto.vk.response.VkSearchResponseDto;
 import ua.denst.music.collection.domain.entity.SearchHistory;
 import ua.denst.music.collection.domain.entity.Track;
 import ua.denst.music.collection.domain.entity.VkAudio;
-import ua.denst.music.collection.service.*;
+import ua.denst.music.collection.service.TrackService;
+import ua.denst.music.collection.service.search.SearchHistoryService;
 import ua.denst.music.collection.service.search.VkAudioService;
 import ua.denst.music.collection.service.search.VkDownloadService;
-import ua.denst.music.collection.service.search.SearchHistoryService;
 import ua.denst.music.collection.service.search.VkSearchService;
 import ua.denst.music.collection.service.search.vk.VkAudioLoader;
 import ua.denst.music.collection.service.search.vk.VkSearchResultAnalyzer;
@@ -24,7 +24,10 @@ import ua.denst.music.collection.service.search.vk.VkSearchResultProcessor;
 import ua.denst.music.collection.util.BitRateCalculator;
 import ua.denst.music.collection.util.JsonUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static ua.denst.music.collection.util.Constants.USER_ID;
 

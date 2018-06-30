@@ -1,5 +1,5 @@
 package ua.denst.music.collection.domain;
 
-public enum  TrackSource {
+public enum TrackSource {
     FILESYSTEM, VK;
 }

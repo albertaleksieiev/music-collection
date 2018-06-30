@@ -9,15 +9,13 @@ import ua.denst.music.collection.exception.ExistsException;
 import ua.denst.music.collection.repository.GenreRepository;
 import ua.denst.music.collection.service.GenreService;
 
-import javax.annotation.PostConstruct;
-
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class GenreServiceImpl implements GenreService {
     GenreRepository repository;
 
-//    @PostConstruct
+    //    @PostConstruct
     public void init() {
         create("Electro");
         create("Acid");

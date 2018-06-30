@@ -57,7 +57,7 @@ public class Track implements Serializable {
     @OneToOne(cascade = ALL, fetch = LAZY)
     private TrackContent content;
 
-    @Column(columnDefinition="Decimal(10,2)")
+    @Column(columnDefinition = "Decimal(10,2)")
     private Double sizeMb;
 
     @Column

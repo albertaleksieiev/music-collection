@@ -81,7 +81,7 @@ public class DenstFileSystemExportServiceImpl implements FileSystemExportService
                 if (file.isDirectory()) {
                     synced += processGenreSubFolder(bitRate, genre, file, collection);
                 } else {
-                    if (syncTrack(bitRate, genre, file, collection)){
+                    if (syncTrack(bitRate, genre, file, collection)) {
                         synced++;
                     }
                 }

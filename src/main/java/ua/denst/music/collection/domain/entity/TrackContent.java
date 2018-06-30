@@ -14,7 +14,7 @@ public class TrackContent {
     @Column
     private Long id;
 
-//    @Column(nullable = false, length = 2147483647)
-    @Type(type="org.hibernate.type.BinaryType")
+    //    @Column(nullable = false, length = 2147483647)
+    @Type(type = "org.hibernate.type.BinaryType")
     private byte[] content;
 }

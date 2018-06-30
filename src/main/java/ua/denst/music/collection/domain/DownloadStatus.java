@@ -1,5 +1,5 @@
 package ua.denst.music.collection.domain;
 
-public enum  DownloadStatus {
+public enum DownloadStatus {
     NEW, SUCCESS, FAIL
 }

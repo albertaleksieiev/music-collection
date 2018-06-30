@@ -7,8 +7,6 @@ import ua.denst.music.collection.exception.ExistsException;
 import ua.denst.music.collection.repository.MusicCollectionRepository;
 import ua.denst.music.collection.service.MusicCollectionService;
 
-import javax.annotation.PostConstruct;
-
 @Service
 @AllArgsConstructor
 public class MusicCollectionServiceImpl implements MusicCollectionService {
@@ -16,7 +14,7 @@ public class MusicCollectionServiceImpl implements MusicCollectionService {
 
     private final MusicCollectionRepository repository;
 
-//    @PostConstruct
+    //    @PostConstruct
     public void init() {
         create(DEFAULT_COLLECTION_NAME);
     }

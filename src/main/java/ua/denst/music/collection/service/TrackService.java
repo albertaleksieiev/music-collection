@@ -1,11 +1,9 @@
 package ua.denst.music.collection.service;
 
-import org.springframework.context.event.EventListener;
 import ua.denst.music.collection.domain.TrackSource;
 import ua.denst.music.collection.domain.entity.Author;
 import ua.denst.music.collection.domain.entity.MusicCollection;
 import ua.denst.music.collection.domain.entity.Track;
-import ua.denst.music.collection.domain.event.vk.VkDownloadSuccessEvent;
 
 import java.util.Set;
 
@@ -17,7 +15,4 @@ public interface TrackService {
     Track save(final Track track, final Set<String> genres, final Long collectionId);
 
     Track findByArtistAndTitle(final String artist, final String title);
-
-    @EventListener
-    void onDownloadSuccessEvent(VkDownloadSuccessEvent event);
 }

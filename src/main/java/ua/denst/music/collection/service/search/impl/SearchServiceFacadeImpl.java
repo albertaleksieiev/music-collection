@@ -9,12 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ua.denst.music.collection.domain.entity.MusicCollection;
 import ua.denst.music.collection.domain.entity.SearchHistory;
 import ua.denst.music.collection.domain.entity.Track;
-import ua.denst.music.collection.service.*;
+import ua.denst.music.collection.service.MusicCollectionService;
+import ua.denst.music.collection.service.TrackService;
 import ua.denst.music.collection.service.search.SearchHistoryService;
 import ua.denst.music.collection.service.search.SearchServiceFacade;
 import ua.denst.music.collection.service.search.VkSearchService;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -33,7 +33,7 @@ public class SearchServiceFacadeImpl implements SearchServiceFacade {
     TrackService trackService;
     MusicCollectionService musicCollectionService;
 
-    @PostConstruct
+    //    @PostConstruct
     public void checkSearch() {
         final MusicCollection defaultCollection = musicCollectionService.findByName(DEFAULT_COLLECTION_NAME);
         final Set<String> genres = Collections.singleton("Electro");
