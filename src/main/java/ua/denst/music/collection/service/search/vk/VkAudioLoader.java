@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import ua.denst.music.collection.client.VkClient;
 import ua.denst.music.collection.domain.dto.request.vk.VkSearchAudioRequestDto;
 import ua.denst.music.collection.domain.entity.VkAudio;
+import ua.denst.music.collection.util.Configuration;
 import ua.denst.music.collection.util.JsonUtils;
 
 import javax.script.Invocable;
@@ -23,23 +24,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ua.denst.music.collection.util.Constants.JSON_DELIMITER;
-import static ua.denst.music.collection.util.Constants.USER_ID;
 
 @Component
 @Slf4j
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class VkAudioLoader {
     static int SLEEP_INTERVAL = 5_000;
 
     VkClient vkClient;
-
     ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("JavaScript");
     String script;
+    Configuration configuration;
 
     @Autowired
-    public VkAudioLoader(final VkClient vkClient) throws IOException {
+    public VkAudioLoader(final VkClient vkClient, Configuration configuration) throws IOException {
         this.vkClient = vkClient;
-
+        this.configuration = configuration;
         script = loadDecryptionScript();
     }
 
@@ -105,7 +105,7 @@ public class VkAudioLoader {
         final Integer duration = (Integer) object.get(5);
 
         if (url != null && !url.isEmpty()) {
-            final VkAudio track = new VkAudio(id, USER_ID, authors, title, duration);
+            final VkAudio track = new VkAudio(id, configuration.getVk().getUserId(), authors, title, duration);
             track.setUrl(decrypt(url));
             result.add(track);
         } else {
@@ -115,7 +115,7 @@ public class VkAudioLoader {
 
     @SneakyThrows
     private String decrypt(final String url) {
-        final String script = this.script.replace("${vkId}", USER_ID.toString()); // TODO: replace with bindings
+        final String script = this.script.replace("${vkId}", configuration.getVk().getUserId().toString()); // TODO: replace with bindings
         scriptEngine.eval(script);
 
         final Invocable inv = (Invocable) scriptEngine;

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import ua.denst.music.collection.exception.DownloadException;
 import ua.denst.music.collection.property.DownloaderProperties;
 import ua.denst.music.collection.service.PropertyService;
 import ua.denst.music.collection.service.search.VkDownloadService;
+import ua.denst.music.collection.util.Configuration;
 
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +41,9 @@ public class VkDownloadServiceImpl implements VkDownloadService {
     ApplicationEventPublisher publisher;
     PropertyService propertyService;
     VkAudioToTrackConverter converter;
+
+    Configuration configuration;
+
 
     @Async
     @Override
@@ -61,7 +66,7 @@ public class VkDownloadServiceImpl implements VkDownloadService {
         final ExecutorService executor = Executors.newFixedThreadPool(properties.getPoolSize());
         final CompletionService<byte[]> completionService = new ExecutorCompletionService<>(executor);
 
-        completionService.submit(new DownloadTask(audio));
+        completionService.submit(new DownloadTask(audio, configuration));
         final Optional<Track> track = downloadTrack(completionService, audio, genres, collectionId, searchHistory);
 
         executor.shutdown();

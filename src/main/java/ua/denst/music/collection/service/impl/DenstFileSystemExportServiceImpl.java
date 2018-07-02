@@ -1,5 +1,6 @@
 package ua.denst.music.collection.service.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,16 +14,19 @@ import ua.denst.music.collection.repository.TrackRepository;
 import ua.denst.music.collection.service.FileSystemExportService;
 import ua.denst.music.collection.service.MusicCollectionService;
 import ua.denst.music.collection.service.TrackExportService;
+import ua.denst.music.collection.util.Configuration;
 
 import java.io.File;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class DenstFileSystemExportServiceImpl implements FileSystemExportService {
 
     private final TrackRepository trackRepository;
     private final TrackExportService trackExportService;
     private final MusicCollectionService collectionService;
+    private Configuration configuration;
 
     @Value("${music.collection.import.root.folder}")
     private String rootFolder;

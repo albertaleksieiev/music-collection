@@ -22,14 +22,13 @@ import ua.denst.music.collection.service.search.vk.VkAudioLoader;
 import ua.denst.music.collection.service.search.vk.VkSearchResultAnalyzer;
 import ua.denst.music.collection.service.search.vk.VkSearchResultProcessor;
 import ua.denst.music.collection.util.BitRateCalculator;
+import ua.denst.music.collection.util.Configuration;
 import ua.denst.music.collection.util.JsonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static ua.denst.music.collection.util.Constants.USER_ID;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -48,6 +47,8 @@ public class VkSearchServiceImpl implements VkSearchService {
     SearchHistoryService searchHistoryService;
     VkDownloadService vkDownloadService;
     VkAudioService vkAudioService;
+
+    Configuration configuration;
 
     @Override
     public Optional<Track> searchAndDownload(final String authors, final String title, final Set<String> genres,
@@ -123,7 +124,7 @@ public class VkSearchServiceImpl implements VkSearchService {
         VkSearchResponseDto vkSearchResponseDto;
         int offset = 0;
         do {
-            final Connection.Response response = vkClient.search(USER_ID, searchQuery, offset);
+            final Connection.Response response = vkClient.search(configuration.getVk().getUserId(), searchQuery, offset);
             vkSearchResponseDto = JsonUtils.responseToObject(response.body(), VkSearchResponseDto.class);
 
             offset = vkSearchResponseDto.getNextOffset();
