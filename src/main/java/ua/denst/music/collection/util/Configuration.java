@@ -10,8 +10,8 @@ import org.springframework.context.annotation.PropertySource;
 @ConfigurationProperties(prefix = "configuration")
 public class Configuration {
     public static class Proxy {
-        @Getter @Setter private String ip;
-        @Getter @Setter private Integer port;
+        private @Getter @Setter  String ip;
+        private @Getter @Setter Integer port;
     }
     public static class Vk {
         private String userId;
@@ -25,10 +25,10 @@ public class Configuration {
         }
     }
     public static class Connection {
-        @Getter @Setter private String vk_cookie;
+        private @Getter @Setter String vkCookie;
     }
 
-    @Getter @Setter private Proxy proxy;
-    @Getter @Setter private Vk vk;
-    @Getter @Setter private Connection connection;
+    private @Getter @Setter Proxy proxy;
+    private @Getter @Setter Vk vk;
+    private @Getter @Setter Connection connection;
 }

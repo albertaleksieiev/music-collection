@@ -35,7 +35,7 @@ public class VkClientImpl implements VkClient {
     public void defaultCookies() {
         final Map<String, String> cookies = new HashMap<>();
 
-        String[] cookiesArray = configuration.getConnection().getVk_cookie().split(";");
+        String[] cookiesArray = configuration.getConnection().getVkCookie().split(";");
         for (String cookie : cookiesArray) {
             String[] split = cookie.split("=");
             cookies.put(split[0].trim(), split[1].trim());
